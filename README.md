@@ -49,7 +49,7 @@ You'll be presented with a menu:
 0. Exit
 ```
 
-###Single File Mode
+### Single File Mode
 Select your input CSV file
 
 Verify/select the timestamp column
@@ -58,7 +58,7 @@ Choose output directory
 
 View processing summary
 
-###Bulk Processing Mode
+### Bulk Processing Mode
 Select input directory (processes all CSVs recursively)
 
 Choose output directory
