@@ -5,7 +5,7 @@ from tqdm import tqdm
 from datetime import datetime
 import os
 
-print("\nDeveloped by Jacob Wilson - Version 0.1")
+print("\nDeveloped by Jacob Wilson - Version 0.2")
 print("dfirvault@gmail.com\n")
 
 def guess_timestamp_column(columns):
@@ -52,22 +52,24 @@ def select_timestamp_column(df, auto_select=False):
     samples = df[selected_col].dropna().astype(str).head(5).tolist()
     print(f"\n📋 Sample values from '{selected_col}':")
     for s in samples:
-        iso_version = None
+        formatted_version = None
         try:
             num = float(s)
             # Heuristics: 13-digit is ms, 10-digit is s
             if len(str(int(num))) >= 13:
-                iso_version = datetime.utcfromtimestamp(num / 1000).isoformat() + "Z"
+                dt = datetime.utcfromtimestamp(num / 1000)
+                formatted_version = dt.strftime("%d/%m/%Y %H:%M:%S")
             elif len(str(int(num))) == 10:
-                iso_version = datetime.utcfromtimestamp(num).isoformat() + "Z"
+                dt = datetime.utcfromtimestamp(num)
+                formatted_version = dt.strftime("%d/%m/%Y %H:%M:%S")
         except:
             pass
 
-        if iso_version:
-            print(f"  - {s} → {iso_version}")
+        if formatted_version:
+            print(f"  - {s} → {formatted_version}")
         else:
             print(f"  - {s}")
-    print("🔍 Make sure these are valid ISO-8601 timestamps.")
+    print("🔍 Make sure these are valid timestamps.")
 
     confirm = input("✅ Proceed with this timestamp field? (y/n): ").strip().lower()
     if confirm != 'y':
@@ -76,7 +78,7 @@ def select_timestamp_column(df, auto_select=False):
     return selected_col
 
 def convert_timestamps(df, timestamp_column):
-    """Convert the selected timestamp column to standardized ISO format"""
+    """Convert the selected timestamp column to DD/MM/YYYY HH:MM:SS format"""
     print("\n🔄 Converting timestamps...")
     
     def convert_single_timestamp(ts_val):
@@ -87,11 +89,15 @@ def convert_timestamps(df, timestamp_column):
             if isinstance(ts_val, (int, float)) or re.match(r'^\d+(\.\d+)?$', str(ts_val)):
                 ts_float = float(ts_val)
                 if ts_float > 1e12:  # likely in milliseconds
-                    return datetime.utcfromtimestamp(ts_float / 1000).isoformat() + 'Z'
+                    dt = datetime.utcfromtimestamp(ts_float / 1000)
+                    return dt.strftime("%d/%m/%Y %H:%M:%S")
                 else:  # assume seconds
-                    return datetime.utcfromtimestamp(ts_float).isoformat() + 'Z'
+                    dt = datetime.utcfromtimestamp(ts_float)
+                    return dt.strftime("%d/%m/%Y %H:%M:%S")
             else:
-                return pd.to_datetime(ts_val, utc=True).isoformat()
+                # Handle string timestamps (ISO format or others)
+                dt = pd.to_datetime(ts_val, utc=True)
+                return dt.strftime("%d/%m/%Y %H:%M:%S")
         except Exception as e:
             print(f"⚠️ Failed to parse timestamp: {ts_val} ({e})")
             return None
